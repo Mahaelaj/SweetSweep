@@ -2,32 +2,32 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CandyCaneContainer : MonoBehaviour
+public class GrowingLineContainer : MonoBehaviour
 {
-	[SerializeField] GameObject CandyCane;
-	[SerializeField] CandyCaneMask CandyCaneMask;
+	[SerializeField] GrowingLine GrowingLine;
+
 	public Vector3 vecDiff;
 	int MovingLines = 2;
 	int linesConnectedwithBarriers = 0;
-	CandyCaneMask line1;
-	CandyCaneMask line2;
+	GrowingLine line1;
+	GrowingLine line2;
 
-
-	private void Start()
+	// Use this for initialization
+	void Start()
 	{
 		float degrees = Mathf.Atan2(vecDiff.y, vecDiff.x) * Mathf.Rad2Deg;
 
-		CandyCane.transform.eulerAngles = new Vector3(0, 0, degrees + 90);
-
-		line1 = Instantiate(CandyCaneMask, transform.localPosition, Quaternion.identity);
+		line1 = Instantiate(GrowingLine, transform.localPosition, Quaternion.identity);
 		line1.gameObject.transform.eulerAngles = new Vector3(0, 0, degrees);
 		line1.vecDiff = vecDiff.normalized;
-		line1.candyCaneContainer = this;
+		line1.growingLineContainer = this;
 
-		line2 = Instantiate(CandyCaneMask, transform.localPosition, Quaternion.identity);
+		line2 = Instantiate(GrowingLine, transform.localPosition, Quaternion.identity);
 		line2.gameObject.transform.eulerAngles = new Vector3(0, 0, degrees + 180);
 		line2.vecDiff = vecDiff.normalized * -1;
-		line2.candyCaneContainer = this;
+		line2.growingLineContainer = this;
+
+		Physics.IgnoreCollision(line1.GetComponent<MeshCollider>(), line2.GetComponent<MeshCollider>());
 	}
 
 	public void onLineHitBarrier(GameObject gameObject)
@@ -44,9 +44,5 @@ public class CandyCaneContainer : MonoBehaviour
 	public void onBallHitLine()
 	{
 		MovingLines--;
-	}
-	void calculateSpaceUsed()
-	{
-
 	}
 }

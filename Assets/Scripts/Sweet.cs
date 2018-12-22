@@ -2,28 +2,33 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Sweet : MonoBehaviour {
+public class Sweet : MonoBehaviour
+{
 
-    [SerializeField] float speed = 1f;
-    Rigidbody2D rb;
-    Vector2 curVel;
+	[SerializeField] float speed = 1.0f;
+	Rigidbody rb;
+	Vector3 curVel;
 
 	// Use this for initialization
-	void Start () {
-        rb = GetComponent<Rigidbody2D>();
-        rb.velocity = Vector2.up * speed;
-	}
-	
-	// Update is called once per frame
-	void Update () {
-        if (rb.velocity != Vector2.zero) curVel = rb.velocity;
+	void Start()
+	{
+		rb = GetComponent<Rigidbody>();
+		rb.velocity = new Vector3(speed, speed, 0);
 	}
 
-    void OnCollisionEnter2D(Collision2D collision)
-    {
-        if (collision.gameObject.tag == "Border" || collision.gameObject.tag == "MovingLine")
-        {
-            rb.velocity = curVel * -1;
-        }
-    }
+	// Update is called once per frame
+	void Update()
+	{
+		if (rb.velocity != Vector3.zero) curVel = rb.velocity;
+		// if (rb.) curVel = rb.velocity;
+	}
+
+	void OnCollisionEnter(Collision collision)
+	{
+		if (collision.gameObject.tag == "Border" || collision.gameObject.tag == "StaticLine")
+		{
+			rb.velocity = curVel * -1;
+		}
+		else rb.AddForce(new Vector3(speed, speed, 0));
+	}
 }

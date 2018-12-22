@@ -18,7 +18,7 @@ TagManager:
   - 
   - 
   - Border
-  - 
+  - Line
   - 
   - 
   - 
@@ -42,6 +42,9 @@ TagManager:
   - 
   - 
   m_SortingLayers:
+  - name: Present
+    uniqueID: 2321845161
+    locked: 0
   - name: Default
     uniqueID: 0
     locked: 0

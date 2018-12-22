@@ -1,15 +1,21 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 public class MeshGenerator : MonoBehaviour
 {
-
 	public static MeshGenerator instance = null;
+	public List<TopMesh> topMeshes;
+	public SpriteMask spriteMask = null;
+	int createdImageIndex = 0;
+
+	public GameObject topMesh;
 
 	public class CollisionNode
 	{
-		public CollisionTracker collisionTracker;
+		public GameObject[] objs;
 		public CollisionNode parentNode;
+		public Vector2 CollisionPoint;
 	}
 
 	//Awake is always called before any Start functions
@@ -18,11 +24,8 @@ public class MeshGenerator : MonoBehaviour
 		//Check if instance already exists
 		if (instance == null)
 		{
-
 			//if not, set instance to this
 			instance = this;
-
-
 		}
 		//If instance already exists and it's not this:
 		else if (instance != this)
@@ -31,76 +34,108 @@ public class MeshGenerator : MonoBehaviour
 			Destroy(gameObject);
 	}
 
-	public void generateMesh(CollisionTracker collisionTracker1, CollisionTracker collisionTracker2)
+	public void generateMesh(SceneManager.CollisionPoint startPoint)
 	{
 		List<CollisionNode> collisionGraph = new List<CollisionNode>();
 
-
 		// TODO: do the same search for collision tracker2 
 		CollisionNode collisionNode1 = new CollisionNode();
-		collisionNode1.collisionTracker = collisionTracker1;
+		collisionNode1.objs = startPoint.objects;
+		collisionNode1.CollisionPoint = startPoint.point;
 
 		collisionGraph.Add(collisionNode1);
 
+		List<GameObject> exploredObjects = new List<GameObject>();
 		List<CollisionNode>[] completeRoutes = new List<CollisionNode>[2];
 
 		// breadth first search for graph creation
 		int i = 0;
 		while (i < collisionGraph.Count)
 		{
-			//int parentNodeId = collisionGraph[i].collisionTracker.gameObject.GetInstanceID();
-			List<CollisionNode> nodesAlreadyInGraph = new List<CollisionNode>();
-			foreach (CollisionTracker childObj in collisionGraph[i].collisionTracker.collidingObjects)
+			List<CollisionNode> collisionsAlreadyInGraph = new List<CollisionNode>();
+			// loop through both of the objects of the node
+			foreach (GameObject exploringObj in collisionGraph[i].objs)
 			{
+				// if the object looking into has already been explored, then there is no need to explore it
+				if (exploredObjects.Exists(n => n.GetInstanceID() == exploringObj.GetInstanceID())) continue;
 
-				// check if the game object is already in the graph
-				if (collisionGraph.Exists(n => n.collisionTracker.gameObject.GetInstanceID() == childObj.gameObject.GetInstanceID()))
+				// find the objects the current node object is colliding with. Add it to the collision graph if it does not exist yet
+				foreach (SceneManager.CollisionPoint collisionPoint in SceneManager.instance.collisionPoints)
 				{
+					// we only want to explore the collisions that involve the object we are currently exploring 
+					if (!Array.Exists(collisionPoint.objects, o => o.GetInstanceID() == exploringObj.GetInstanceID())) continue;
 
-					nodesAlreadyInGraph.Add(collisionGraph.Find(n => n.collisionTracker.gameObject.GetInstanceID() == childObj.gameObject.GetInstanceID()));
-
-					//	Debug.Log(nodesAlreadyInGraph.Count);
-					// TODO: handle more than 2 nodes already in the graph
-					// if at least 2 of the connecting game objects are already in the graph, then the polygon is created
-					if (nodesAlreadyInGraph.Count >= 2)
+					// if the collision already exists in our collision graph then we do not want to add it again
+					if (collisionGraph.Exists(n => n.CollisionPoint == collisionPoint.point) && collisionGraph.Count >= 4)
 					{
-						getListOfConnectingGameObjects(collisionGraph, nodesAlreadyInGraph, collisionGraph[i]);
-					}
-				}
+						collisionsAlreadyInGraph.Add(collisionGraph.Find(n => n.CollisionPoint == collisionPoint.point));
 
-				// if it is not in the graph add the colliding objects to the graph
-				else
-				{
-					CollisionNode collisionNode = new CollisionNode();
-					collisionNode.collisionTracker = childObj;
-					collisionNode.parentNode = collisionGraph[i];
-					collisionGraph.Add(collisionNode);
+						// TODO: handle more than 2
+						if (collisionsAlreadyInGraph.Count == 2)
+						{
+							Vector3[] vertices = getListOfConnectingGameObjects(collisionGraph, collisionsAlreadyInGraph);
+							GameObject meshObj = Instantiate(topMesh, Vector3.zero, Quaternion.identity);
+							TopMesh mesh = meshObj.GetComponent<TopMesh>();
+							mesh.generateMesh(vertices);
+							return;
+						}
+						continue;
+					}
+
+					// the object that the object we are exploring is colliding with
+					GameObject childObj = Array.Find(collisionPoint.objects, o => o.GetInstanceID() != exploringObj.GetInstanceID());
+
+					// create a new node and add it to the graph
+					CollisionNode newNode = new CollisionNode();
+					newNode.objs = collisionPoint.objects;
+					newNode.parentNode = collisionGraph[i];
+					newNode.CollisionPoint = collisionPoint.point;
+					collisionGraph.Add(newNode);
 				}
+				exploredObjects.Add(exploringObj);
 			}
 			i++;
 		}
 	}
 
-
 	// TODO: When a line hits a border the border should track the collision
-	public List<CollisionNode> getListOfConnectingGameObjects(List<CollisionNode> graph, List<CollisionNode> pathStarters, CollisionNode connectingNode)
+	public Vector3[] getListOfConnectingGameObjects(List<CollisionNode> graph, List<CollisionNode> pathStarters)
 	{
-		List<CollisionNode> gameObjectPollygons = new List<CollisionNode>();
-		gameObjectPollygons.Add(connectingNode);
+		List<Vector2> path = new List<Vector2>();
 
 		CollisionNode collisionNode = pathStarters[0];
-		while (collisionNode.parentNode != null)
+
+		while (collisionNode != null)
 		{
-			gameObjectPollygons.Add(collisionNode);
+			path.Add(collisionNode.CollisionPoint);
 			collisionNode = collisionNode.parentNode;
 		}
 
 		collisionNode = pathStarters[1];
+		List<Vector2> secondHalfPath = new List<Vector2>();
 		while (collisionNode.parentNode != null)
 		{
-			if (!gameObjectPollygons.Exists(n => n.collisionTracker.gameObject.GetInstanceID() == collisionNode.collisionTracker.gameObject.GetInstanceID())) gameObjectPollygons.Add(collisionNode);
+			secondHalfPath.Add(collisionNode.CollisionPoint);
 			collisionNode = collisionNode.parentNode;
 		}
-		return gameObjectPollygons;
+
+		secondHalfPath.Reverse();
+		path.AddRange(secondHalfPath);
+
+		Vector3[] pathArray = new Vector3[path.Count];
+		for (int i = 0; i < path.Count; i++)
+		{
+			pathArray[i] = new Vector3(path[i].x, path[i].y, 0);
+		}
+		return pathArray;
+	}
+
+	public Vector3[] getPolygonVertices(List<CollisionNode> pollygonObjects)
+	{
+		Vector3[] vertices = new Vector3[pollygonObjects.Count + 1];
+
+		// the last object in the pollygon objects will be the begining 
+
+		return vertices;
 	}
 }

@@ -15,10 +15,10 @@ public class CandyCaneMask : MonoBehaviour
 	// Use this for initialization
 	void Start()
 	{
-		GetComponent<BoxCollider2D>().isTrigger = true;
+		//GetComponent<BoxCollider2D>().isTrigger = true;
 	}
 
-	void OnTriggerEnter2D(Collider2D collision)
+	void OnCollisionEnter2D(Collision2D collision)
 	{
 		if (collision.gameObject.tag == "Sweet")
 		{
@@ -29,17 +29,11 @@ public class CandyCaneMask : MonoBehaviour
 		if (collision.gameObject.tag == "Border" || collision.gameObject.tag == "StaticLine")
 		{
 			gameObject.tag = "StaticLine";
-			transform.localScale += Vector3.right * .3f;
 			GetComponent<BoxCollider2D>().isTrigger = false;
 			GetComponent<Rigidbody2D>().constraints = RigidbodyConstraints2D.FreezeAll;
 			isMoving = false;
-			gameObject.GetComponent<CollisionTracker>().AddCollidingObject(collision.gameObject);
-			candyCaneContainer.onLineHitBarrier(gameObject.GetComponent<CollisionTracker>());
-
-			if (collision.gameObject.tag == "Border")
-			{
-				collision.gameObject.GetComponent<CollisionTracker>().AddCollidingObject(gameObject);
-			}
+			SceneManager.instance.AddCollidingObject(new GameObject[] { collision.gameObject, gameObject }, collision.GetContact(0).point);
+			candyCaneContainer.onLineHitBarrier(gameObject);
 		}
 	}
 

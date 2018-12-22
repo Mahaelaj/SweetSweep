@@ -23,8 +23,7 @@ GameObject:
   - component: {fileID: 61779519534002286}
   - component: {fileID: 114069816097272380}
   - component: {fileID: 50530795233034894}
-  - component: {fileID: 114205098751213136}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: CandyCaneMask
   m_TagString: MovingLine
   m_Icon: {fileID: 0}
@@ -103,18 +102,6 @@ MonoBehaviour:
   growRate: 2
   candyCaneContainer: {fileID: 0}
   vecDiff: {x: 0, y: 0, z: 0}
---- !u!114 &114205098751213136
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1459027717970104}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a1cb40f5c67922849acc25f6746c9716, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  collidingObjects: []
 --- !u!331 &331918156863537022
 SpriteMask:
   m_ObjectHideFlags: 1
