@@ -7,7 +7,7 @@ public class TopMesh : MonoBehaviour
 	public Material topMaterial;
 
 	// Use this for initialization
-	public void generateMesh(Vector3[] vertices)
+	public bool generateMesh(Vector3[] vertices)
 	{
 		Mesh mesh = new Mesh();
 		mesh.vertices = vertices;
@@ -22,8 +22,19 @@ public class TopMesh : MonoBehaviour
 		mesh.RecalculateNormals();
 		mesh.RecalculateBounds();
 
+		MeshCollider meshCollider = GetComponent<MeshCollider>();
+		meshCollider.sharedMesh = mesh;
+
+		foreach (GameObject sweet in SceneManager.instance.sweets)
+		{
+			if (meshCollider.bounds.Intersects(sweet.GetComponent<SphereCollider>().bounds)) {
+				Destroy(gameObject);
+				return false;
+			}
+		}
 		MeshRenderer renderer = GetComponent<MeshRenderer>();
 		MeshFilter filter = GetComponent<MeshFilter>();
 		filter.mesh = mesh;
+		return true;
 	}
 }

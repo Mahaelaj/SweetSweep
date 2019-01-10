@@ -17,13 +17,14 @@ public class GrowingLine : MonoBehaviour
 
 	void OnCollisionEnter(Collision collision)
 	{
-		if (collision.gameObject.tag == "Border" || collision.gameObject.tag == "StaticLine")
+		if ((collision.gameObject.tag == "Border" || collision.gameObject.tag == "StaticLine") && isMoving)
 		{
 			isMoving = false;
-			SceneManager.instance.AddCollidingObject(new GameObject[] { collision.gameObject, gameObject }, collision.contacts[0].point);
+			SceneManager.instance.AddCollidingObject(new GameObject[] { collision.gameObject, gameObject }, collision.contacts[0].point, false);
 			growingLineContainer.onLineHitBarrier(gameObject);
 			transform.localScale += Vector3.right * .1f;
 			transform.localPosition += vecDiff * .1f * .5f;
+			gameObject.tag = "StaticLine";
 		}
 	}
 
@@ -38,7 +39,7 @@ public class GrowingLine : MonoBehaviour
 
 		if (isMoving && (collider.gameObject.tag == "Border" || collider.gameObject.tag == "StaticLine"))
 		{
-			gameObject.tag = "StaticLine";
+			
 			GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeAll;
 			gameObject.GetComponent<MeshCollider>().isTrigger = false;
 		}

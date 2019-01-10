@@ -32,7 +32,7 @@ public class CandyCaneMask : MonoBehaviour
 			GetComponent<BoxCollider2D>().isTrigger = false;
 			GetComponent<Rigidbody2D>().constraints = RigidbodyConstraints2D.FreezeAll;
 			isMoving = false;
-			SceneManager.instance.AddCollidingObject(new GameObject[] { collision.gameObject, gameObject }, collision.GetContact(0).point);
+			SceneManager.instance.AddCollidingObject(new GameObject[] { collision.gameObject, gameObject }, collision.GetContact(0).point, false);
 			candyCaneContainer.onLineHitBarrier(gameObject);
 		}
 	}

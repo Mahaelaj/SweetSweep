@@ -5,9 +5,6 @@ using System;
 public class MeshGenerator : MonoBehaviour
 {
 	public static MeshGenerator instance = null;
-	public List<TopMesh> topMeshes;
-	public SpriteMask spriteMask = null;
-	int createdImageIndex = 0;
 
 	public GameObject topMesh;
 
@@ -16,6 +13,12 @@ public class MeshGenerator : MonoBehaviour
 		public GameObject[] objs;
 		public CollisionNode parentNode;
 		public Vector2 CollisionPoint;
+	}
+
+	public struct VerticesAndMeshes
+	{
+		public Vector3[] vertices;
+		public List<GameObject> meshes;
 	}
 
 	//Awake is always called before any Start functions
@@ -68,16 +71,39 @@ public class MeshGenerator : MonoBehaviour
 					// if the collision already exists in our collision graph then we do not want to add it again
 					if (collisionGraph.Exists(n => n.CollisionPoint == collisionPoint.point) && collisionGraph.Count >= 4)
 					{
+
 						collisionsAlreadyInGraph.Add(collisionGraph.Find(n => n.CollisionPoint == collisionPoint.point));
 
-						// TODO: handle more than 2
+						// while exploring an object, if at least 2 of the collisions for that obejct are already in the collision graph then the graph has circled and a mesh can be made 
+						// TODO: What happens when collisionsAlreadyInGraph has more than 2 count
 						if (collisionsAlreadyInGraph.Count == 2)
 						{
-							Vector3[] vertices = getListOfConnectingGameObjects(collisionGraph, collisionsAlreadyInGraph);
+							VerticesAndMeshes vAndM = getListOfConnectingGameObjects(collisionGraph, collisionsAlreadyInGraph);
 							GameObject meshObj = Instantiate(topMesh, Vector3.zero, Quaternion.identity);
 							TopMesh mesh = meshObj.GetComponent<TopMesh>();
-							mesh.generateMesh(vertices);
-							return;
+							bool wasMeshCreated = mesh.generateMesh(vAndM.vertices);
+
+							// if the mesh intersects one of the sweets, delete it.
+							// otherwise merge it with the meshes that it intersects with and break because it is only possible for 1 top mesh to be successfully created	
+						
+							if (wasMeshCreated) {
+								Debug.Log("Merging Meshes");
+
+								// remove any border corner collisions that are covered by the topmesh
+								foreach(SceneManager.CollisionPoint point in SceneManager.instance.collisionPoints) {
+									if (collisionGraph.Exists(p => p.CollisionPoint == point.point) && point.isBorder == true) {
+										Debug.Log("hello");
+									}
+								}
+								mergeMeshes(vAndM.meshes, topMesh);
+
+								// it is only possible for one top mesh to be generated successfully. So if it was generated then there is no need to continue
+			 					return;			
+							}
+
+			
+							// }
+
 						}
 						continue;
 					}
@@ -96,18 +122,33 @@ public class MeshGenerator : MonoBehaviour
 			}
 			i++;
 		}
+
+		// if a top mesh was not generated, then merge the two growing lines
+		foreach (SceneManager.CollisionPoint collisionPoint in SceneManager.instance.collisionPoints) {
+			// if (collisionPoint.objects.con)
+		}
+	}
+
+	public void mergeMeshes(List<GameObject> meshes, GameObject topMesh) {
+
 	}
 
 	// TODO: When a line hits a border the border should track the collision
-	public Vector3[] getListOfConnectingGameObjects(List<CollisionNode> graph, List<CollisionNode> pathStarters)
+	public VerticesAndMeshes getListOfConnectingGameObjects(List<CollisionNode> graph, List<CollisionNode> pathStarters)
 	{
-		List<Vector2> path = new List<Vector2>();
+		List<Vector2> collisionPoints = new List<Vector2>();
+		List<GameObject> meshes = new List<GameObject>();
 
 		CollisionNode collisionNode = pathStarters[0];
 
 		while (collisionNode != null)
 		{
-			path.Add(collisionNode.CollisionPoint);
+			collisionPoints.Add(collisionNode.CollisionPoint);
+			foreach(GameObject mesh in collisionNode.objs) {
+				if (!meshes.Exists(m => m.GetInstanceID() == mesh.GetInstanceID())) {
+					meshes.Add(mesh);
+				}
+			}
 			collisionNode = collisionNode.parentNode;
 		}
 
@@ -120,14 +161,19 @@ public class MeshGenerator : MonoBehaviour
 		}
 
 		secondHalfPath.Reverse();
-		path.AddRange(secondHalfPath);
+		collisionPoints.AddRange(secondHalfPath);
 
-		Vector3[] pathArray = new Vector3[path.Count];
-		for (int i = 0; i < path.Count; i++)
+		Vector3[] pathArray = new Vector3[collisionPoints.Count];
+		for (int i = 0; i < collisionPoints.Count; i++)
 		{
-			pathArray[i] = new Vector3(path[i].x, path[i].y, 0);
+			pathArray[i] = new Vector3(collisionPoints[i].x, collisionPoints[i].y, 0);
 		}
-		return pathArray;
+
+		VerticesAndMeshes vAndM = new VerticesAndMeshes();
+		vAndM.vertices = pathArray;
+		vAndM.meshes = meshes;
+
+		return vAndM;
 	}
 
 	public Vector3[] getPolygonVertices(List<CollisionNode> pollygonObjects)
@@ -137,5 +183,14 @@ public class MeshGenerator : MonoBehaviour
 		// the last object in the pollygon objects will be the begining 
 
 		return vertices;
+	}
+
+	public bool doesTopMeshIntersectSweet(MeshCollider meshCollider) {
+
+		foreach(GameObject sweet in SceneManager.instance.sweets) {
+			if (sweet.GetComponent<SphereCollider>().bounds.Intersects(meshCollider.bounds)) return true;
+		}
+
+		return false;
 	}
 }

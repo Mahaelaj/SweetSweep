@@ -19,14 +19,17 @@ public class SceneManager : MonoBehaviour
 	{
 		public GameObject[] objects;
 		public Vector2 point;
+
+		public bool isBorder;
 	}
 
 	public List<CollisionPoint> collisionPoints = new List<CollisionPoint>();
-	public CollisionPoint AddCollidingObject(GameObject[] objects, Vector2 point)
+	public CollisionPoint AddCollidingObject(GameObject[] objects, Vector2 point, bool isBorder)
 	{
 		CollisionPoint collisionPoint = new CollisionPoint();
 		collisionPoint.objects = objects;
 		collisionPoint.point = point;
+		collisionPoint.isBorder = isBorder;
 		collisionPoints.Add(collisionPoint);
 		return collisionPoint;
 	}
@@ -50,10 +53,10 @@ public class SceneManager : MonoBehaviour
 	private void Start()
 	{
 		sweets = GameObject.FindGameObjectsWithTag("Sweet");
-		AddCollidingObject(new GameObject[] { topBorder, leftBorder }, new Vector2(-5.86f, 4.9f));
-		AddCollidingObject(new GameObject[] { topBorder, rightBorder }, new Vector2(8.78f, 4.9f));
-		AddCollidingObject(new GameObject[] { bottomBorder, rightBorder }, new Vector2(8.78f, -4.9f));
-		AddCollidingObject(new GameObject[] { bottomBorder, leftBorder }, new Vector2(-5.86f, -4.9f));
+		AddCollidingObject(new GameObject[] { topBorder, leftBorder }, new Vector2(-5.86f, 4.9f), true);
+		AddCollidingObject(new GameObject[] { topBorder, rightBorder }, new Vector2(8.78f, 4.9f), true);
+		AddCollidingObject(new GameObject[] { bottomBorder, rightBorder }, new Vector2(8.78f, -4.9f), true);
+		AddCollidingObject(new GameObject[] { bottomBorder, leftBorder }, new Vector2(-5.86f, -4.9f), true);
 	}
 
 

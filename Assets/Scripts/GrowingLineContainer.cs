@@ -36,7 +36,7 @@ public class GrowingLineContainer : MonoBehaviour
 		linesConnectedwithBarriers++;
 		if (linesConnectedwithBarriers == 2)
 		{
-			SceneManager.CollisionPoint collisionPoint = SceneManager.instance.AddCollidingObject(new GameObject[] { line1.gameObject, line2.gameObject }, transform.localPosition);
+			SceneManager.CollisionPoint collisionPoint = SceneManager.instance.AddCollidingObject(new GameObject[] { line1.gameObject, line2.gameObject }, transform.localPosition, false);
 			MeshGenerator.instance.generateMesh(collisionPoint);
 		}
 	}
