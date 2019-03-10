@@ -85,23 +85,27 @@ public class MeshGenerator : MonoBehaviour
 
 							// if the mesh intersects one of the sweets, delete it.
 							// otherwise merge it with the meshes that it intersects with and break because it is only possible for 1 top mesh to be successfully created	
-						
-							if (wasMeshCreated) {
+
+							if (wasMeshCreated)
+							{
 								Debug.Log("Merging Meshes");
 
 								// remove any border corner collisions that are covered by the topmesh
-								foreach(SceneManager.CollisionPoint point in SceneManager.instance.collisionPoints) {
-									if (collisionGraph.Exists(p => p.CollisionPoint == point.point) && point.isBorder == true) {
-										Debug.Log("hello");
+								foreach (SceneManager.CollisionPoint point in SceneManager.instance.collisionPoints)
+								{
+									if (Array.Exists(vAndM.vertices, v => new Vector2(v.x, v.y) == point.point) && point.isBorder == true)
+									{
+										Debug.Log(SceneManager.instance.collisionPoints.RemoveAll(cp => cp.point == point.point));
 									}
 								}
+								Debug.Log("done");
 								mergeMeshes(vAndM.meshes, topMesh);
 
 								// it is only possible for one top mesh to be generated successfully. So if it was generated then there is no need to continue
-			 					return;			
+								return;
 							}
 
-			
+
 							// }
 
 						}
@@ -124,12 +128,14 @@ public class MeshGenerator : MonoBehaviour
 		}
 
 		// if a top mesh was not generated, then merge the two growing lines
-		foreach (SceneManager.CollisionPoint collisionPoint in SceneManager.instance.collisionPoints) {
+		foreach (SceneManager.CollisionPoint collisionPoint in SceneManager.instance.collisionPoints)
+		{
 			// if (collisionPoint.objects.con)
 		}
 	}
 
-	public void mergeMeshes(List<GameObject> meshes, GameObject topMesh) {
+	public void mergeMeshes(List<GameObject> meshes, GameObject topMesh)
+	{
 
 	}
 
@@ -144,8 +150,10 @@ public class MeshGenerator : MonoBehaviour
 		while (collisionNode != null)
 		{
 			collisionPoints.Add(collisionNode.CollisionPoint);
-			foreach(GameObject mesh in collisionNode.objs) {
-				if (!meshes.Exists(m => m.GetInstanceID() == mesh.GetInstanceID())) {
+			foreach (GameObject mesh in collisionNode.objs)
+			{
+				if (!meshes.Exists(m => m.GetInstanceID() == mesh.GetInstanceID()))
+				{
 					meshes.Add(mesh);
 				}
 			}
@@ -185,9 +193,11 @@ public class MeshGenerator : MonoBehaviour
 		return vertices;
 	}
 
-	public bool doesTopMeshIntersectSweet(MeshCollider meshCollider) {
+	public bool doesTopMeshIntersectSweet(MeshCollider meshCollider)
+	{
 
-		foreach(GameObject sweet in SceneManager.instance.sweets) {
+		foreach (GameObject sweet in SceneManager.instance.sweets)
+		{
 			if (sweet.GetComponent<SphereCollider>().bounds.Intersects(meshCollider.bounds)) return true;
 		}
 
